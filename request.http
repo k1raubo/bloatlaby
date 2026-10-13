@@ -1,0 +1,50 @@
+### Lista użytkowników (200)
+GET http://localhost:9080/pzw/api/users
+
+### Wybrany użytkownik (200)
+GET http://localhost:9080/pzw/api/users/81e1c2a9-7f57-439b-b53d-6db88b071e4e
+
+### Nieistniejący użytkownik (404)
+GET http://localhost:9080/pzw/api/users/00000000-0000-0000-0000-000000000000
+
+### Avatar jeszcze nie istnieje (404)
+GET http://localhost:9080/pzw/api/users/81e1c2a9-7f57-439b-b53d-6db88b071e4e/avatar
+
+### Wgranie avatara (201)
+PUT http://localhost:9080/pzw/api/users/81e1c2a9-7f57-439b-b53d-6db88b071e4e/avatar
+Content-Type: image/png
+
+< ./sample/avatar.png
+
+### Pobranie avatara (200)
+GET http://localhost:9080/pzw/api/users/81e1c2a9-7f57-439b-b53d-6db88b071e4e/avatar
+
+### Nadpisanie avatara (204)
+PUT http://localhost:9080/pzw/api/users/81e1c2a9-7f57-439b-b53d-6db88b071e4e/avatar
+Content-Type: image/png
+
+< ./sample/avatar2.png
+
+### Pobranie nadpisanego avatara (200)
+GET http://localhost:9080/pzw/api/users/81e1c2a9-7f57-439b-b53d-6db88b071e4e/avatar
+
+### Usunięcie avatara (204)
+DELETE http://localhost:9080/pzw/api/users/81e1c2a9-7f57-439b-b53d-6db88b071e4e/avatar
+
+### Ponowne usunięcie avatara (404)
+DELETE http://localhost:9080/pzw/api/users/81e1c2a9-7f57-439b-b53d-6db88b071e4e/avatar
+
+### Avatar nieistniejącego użytkownika (404)
+PUT http://localhost:9080/pzw/api/users/00000000-0000-0000-0000-000000000000/avatar
+Content-Type: image/png
+
+< ./sample/avatar.png
+
+### Plik niebędący obrazem (415)
+PUT http://localhost:9080/pzw/api/users/81e1c2a9-7f57-439b-b53d-6db88b071e4e/avatar
+Content-Type: text/plain
+
+to nie jest obraz
+
+### Niedozwolona metoda na użytkowniku (405)
+DELETE http://localhost:9080/pzw/api/users/81e1c2a9-7f57-439b-b53d-6db88b071e4e
