@@ -3,10 +3,12 @@ package pl.edu.pg.eti.kask.pzw.user.controller;
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Part;
 import pl.edu.pg.eti.kask.pzw.user.dto.GetUserResponse;
 import pl.edu.pg.eti.kask.pzw.user.dto.GetUsersResponse;
 import pl.edu.pg.eti.kask.pzw.user.service.AvatarService;
@@ -21,7 +23,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @WebServlet(urlPatterns = "/api/users/*")
+@MultipartConfig(maxFileSize = 1024 * 1024)
 public class UserServlet extends HttpServlet {
+
+    private static final String AVATAR_PART = "avatar";
 
     private static final String ID = "(?<id>[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12})";
 
@@ -73,13 +78,30 @@ public class UserServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPut(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    protected void doPut(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         Matcher avatar = AVATAR.matcher(path(request));
         if (!avatar.matches()) {
             rejectReadOnly(request, response);
             return;
         }
-        byte[] content = request.getInputStream().readAllBytes();
+        if (request.getContentType() == null || !request.getContentType().startsWith("multipart/form-data")) {
+            response.sendError(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
+            return;
+        }
+        Part part;
+        try {
+            part = request.getPart(AVATAR_PART);
+        } catch (IllegalStateException e) {
+            // upload exceeds @MultipartConfig limits
+            response.sendError(HttpServletResponse.SC_REQUEST_ENTITY_TOO_LARGE);
+            return;
+        }
+        if (part == null) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+        byte[] content = part.getInputStream().readAllBytes();
         if (imageType(content) == null) {
             response.sendError(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
             return;

@@ -12,18 +12,28 @@ GET http://localhost:9080/pzw/api/users/81e1c2a9-7f57-439b-b53d-6db88b071e4e/ava
 
 ### Wgranie avatara (201)
 PUT http://localhost:9080/pzw/api/users/81e1c2a9-7f57-439b-b53d-6db88b071e4e/avatar
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="avatar"; filename="avatar.png"
 Content-Type: image/png
 
 < ./sample/avatar.png
+--boundary--
 
 ### Pobranie avatara (200)
 GET http://localhost:9080/pzw/api/users/81e1c2a9-7f57-439b-b53d-6db88b071e4e/avatar
 
 ### Nadpisanie avatara (204)
 PUT http://localhost:9080/pzw/api/users/81e1c2a9-7f57-439b-b53d-6db88b071e4e/avatar
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="avatar"; filename="avatar2.png"
 Content-Type: image/png
 
 < ./sample/avatar2.png
+--boundary--
 
 ### Pobranie nadpisanego avatara (200)
 GET http://localhost:9080/pzw/api/users/81e1c2a9-7f57-439b-b53d-6db88b071e4e/avatar
@@ -36,15 +46,31 @@ DELETE http://localhost:9080/pzw/api/users/81e1c2a9-7f57-439b-b53d-6db88b071e4e/
 
 ### Avatar nieistniejącego użytkownika (404)
 PUT http://localhost:9080/pzw/api/users/00000000-0000-0000-0000-000000000000/avatar
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="avatar"; filename="avatar.png"
 Content-Type: image/png
 
 < ./sample/avatar.png
+--boundary--
 
 ### Plik niebędący obrazem (415)
 PUT http://localhost:9080/pzw/api/users/81e1c2a9-7f57-439b-b53d-6db88b071e4e/avatar
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="avatar"; filename="tekst.txt"
 Content-Type: text/plain
 
 to nie jest obraz
+--boundary--
+
+### Żądanie bez multipart/form-data (415)
+PUT http://localhost:9080/pzw/api/users/81e1c2a9-7f57-439b-b53d-6db88b071e4e/avatar
+Content-Type: image/png
+
+< ./sample/avatar.png
 
 ### Niedozwolona metoda na użytkowniku (405)
 DELETE http://localhost:9080/pzw/api/users/81e1c2a9-7f57-439b-b53d-6db88b071e4e
