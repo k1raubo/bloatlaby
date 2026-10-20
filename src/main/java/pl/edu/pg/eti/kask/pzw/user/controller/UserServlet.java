@@ -2,7 +2,6 @@ package pl.edu.pg.eti.kask.pzw.user.controller;
 
 import jakarta.inject.Inject;
 import jakarta.json.bind.Jsonb;
-import jakarta.json.bind.JsonbBuilder;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
@@ -37,7 +36,8 @@ public class UserServlet extends HttpServlet {
 
     private static final Pattern AVATAR = Pattern.compile("/" + ID + "/avatar");
 
-    private final Jsonb jsonb = JsonbBuilder.create();
+    @Inject
+    private Jsonb jsonb;
 
     @Inject
     private UserService userService;
