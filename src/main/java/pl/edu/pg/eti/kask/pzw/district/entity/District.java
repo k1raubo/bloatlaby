@@ -1,23 +1,28 @@
 package pl.edu.pg.eti.kask.pzw.district.entity;
 
-import pl.edu.pg.eti.kask.pzw.permit.entity.Permit;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
+@Entity
+@Table(name = "districts")
 public class District {
 
+    @Id
     private UUID id;
 
+    @Column(nullable = false, unique = true)
     private String name;
 
+    @Column(name = "annual_fee", precision = 10, scale = 2)
     private BigDecimal annualFee;
 
+    @Column(name = "water_count")
     private Integer waterCount;
-
-    private List<Permit> permits = new ArrayList<>();
 
     public UUID getId() {
         return id;
@@ -49,14 +54,6 @@ public class District {
 
     public void setWaterCount(Integer waterCount) {
         this.waterCount = waterCount;
-    }
-
-    public List<Permit> getPermits() {
-        return permits;
-    }
-
-    public void setPermits(List<Permit> permits) {
-        this.permits = permits;
     }
 
 }

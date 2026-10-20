@@ -9,11 +9,4 @@
         <param-value>avatars</param-value>
     </context-param>
 
-    <listener>
-        <listener-class>pl.edu.pg.eti.kask.pzw.configuration.CreateServices</listener-class>
-    </listener>
-    <listener>
-        <listener-class>pl.edu.pg.eti.kask.pzw.configuration.InitializeData</listener-class>
-    </listener>
-
 </web-app>

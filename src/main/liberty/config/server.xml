@@ -4,9 +4,21 @@
     <featureManager>
         <feature>servlet-6.0</feature>
         <feature>jsonb-3.0</feature>
+        <feature>cdi-4.0</feature>
+        <feature>persistence-3.1</feature>
     </featureManager>
 
     <httpEndpoint id="defaultHttpEndpoint" host="*" httpPort="9080" httpsPort="9443"/>
+
+    <library id="h2Library">
+        <fileset dir="${server.config.dir}/lib" includes="h2.jar"/>
+    </library>
+
+    <!-- H2 database stored in a file, started together with the application server -->
+    <dataSource id="pzwDataSource" jndiName="jdbc/pzw">
+        <jdbcDriver libraryRef="h2Library" javax.sql.XADataSource="org.h2.jdbcx.JdbcDataSource"/>
+        <properties URL="jdbc:h2:file:${server.output.dir}/database/pzw" user="sa" password="sa"/>
+    </dataSource>
 
     <webApplication location="PZW.war" contextRoot="/pzw"/>
 

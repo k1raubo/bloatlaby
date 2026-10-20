@@ -1,5 +1,6 @@
 package pl.edu.pg.eti.kask.pzw.user.controller;
 
+import jakarta.inject.Inject;
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
 import jakarta.servlet.ServletException;
@@ -38,15 +39,11 @@ public class UserServlet extends HttpServlet {
 
     private final Jsonb jsonb = JsonbBuilder.create();
 
+    @Inject
     private UserService userService;
 
+    @Inject
     private AvatarService avatarService;
-
-    @Override
-    public void init() {
-        userService = (UserService) getServletContext().getAttribute(UserService.class.getName());
-        avatarService = (AvatarService) getServletContext().getAttribute(AvatarService.class.getName());
-    }
 
     @Override
     protected void service(HttpServletRequest request, HttpServletResponse response)

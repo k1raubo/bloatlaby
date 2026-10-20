@@ -1,19 +1,29 @@
 package pl.edu.pg.eti.kask.pzw.user.service;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import pl.edu.pg.eti.kask.pzw.user.repository.AvatarRepository;
-import pl.edu.pg.eti.kask.pzw.user.repository.UserRepository;
 
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
+@ApplicationScoped
 public class AvatarService {
 
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     private final AvatarRepository avatarRepository;
 
-    public AvatarService(UserRepository userRepository, AvatarRepository avatarRepository) {
-        this.userRepository = userRepository;
+    /**
+     * Required by CDI to create a client proxy.
+     */
+    protected AvatarService() {
+        this(null, null);
+    }
+
+    @Inject
+    public AvatarService(UserService userService, AvatarRepository avatarRepository) {
+        this.userService = userService;
         this.avatarRepository = avatarRepository;
     }
 
@@ -21,7 +31,7 @@ public class AvatarService {
      * @throws NoSuchElementException if the user or their avatar does not exist
      */
     public synchronized byte[] find(UUID userId) {
-        userRepository.find(userId).orElseThrow();
+        userService.find(userId).orElseThrow();
         return avatarRepository.find(userId).orElseThrow();
     }
 
@@ -30,7 +40,7 @@ public class AvatarService {
      * @throws NoSuchElementException if the user does not exist
      */
     public synchronized boolean save(UUID userId, byte[] content) {
-        userRepository.find(userId).orElseThrow();
+        userService.find(userId).orElseThrow();
         boolean created = !avatarRepository.exists(userId);
         avatarRepository.save(userId, content);
         return created;

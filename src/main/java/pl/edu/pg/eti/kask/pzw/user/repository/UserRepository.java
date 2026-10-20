@@ -1,28 +1,44 @@
 package pl.edu.pg.eti.kask.pzw.user.repository;
 
+import jakarta.enterprise.context.RequestScoped;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import pl.edu.pg.eti.kask.pzw.repository.Repository;
 import pl.edu.pg.eti.kask.pzw.user.entity.User;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-public class UserRepository {
+@RequestScoped
+public class UserRepository implements Repository<User, UUID> {
 
-    private final Map<UUID, User> users = new LinkedHashMap<>();
+    @PersistenceContext
+    private EntityManager em;
 
-    public synchronized Optional<User> find(UUID id) {
-        return Optional.ofNullable(users.get(id));
+    @Override
+    public Optional<User> find(UUID id) {
+        return Optional.ofNullable(em.find(User.class, id));
     }
 
-    public synchronized List<User> findAll() {
-        return new ArrayList<>(users.values());
+    @Override
+    public List<User> findAll() {
+        return em.createQuery("select u from User u order by u.login", User.class).getResultList();
     }
 
-    public synchronized void create(User user) {
-        users.put(user.getId(), user);
+    @Override
+    public void create(User entity) {
+        em.persist(entity);
+    }
+
+    @Override
+    public void update(User entity) {
+        em.merge(entity);
+    }
+
+    @Override
+    public void delete(User entity) {
+        em.remove(em.find(User.class, entity.getId()));
     }
 
 }
