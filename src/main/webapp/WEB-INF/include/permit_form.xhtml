@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Permit form shared by the create and edit views.
+    Parameter "bean": backing bean exposing permit (PermitEditModel), districts and save().
+-->
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:f="jakarta.faces.core"
+                xmlns:pt="jakarta.faces.passthrough">
+
+    <h:form id="permit" styleClass="form">
+        <div class="field">
+            <h:outputLabel for="district" value="Okręg"/>
+            <h:selectOneMenu id="district" value="#{bean.permit.district}" required="true"
+                             requiredMessage="Wybierz okręg.">
+                <f:selectItem itemLabel="— wybierz okręg —" itemValue="#{null}" noSelectionOption="true"/>
+                <f:selectItems value="#{bean.districts}" var="district"
+                               itemLabel="#{district.name}" itemValue="#{district}"/>
+            </h:selectOneMenu>
+            <h:message for="district" styleClass="error"/>
+        </div>
+
+        <div class="field">
+            <h:outputLabel for="validFrom" value="Ważne od"/>
+            <h:inputText id="validFrom" value="#{bean.permit.validFrom}" required="true"
+                         requiredMessage="Podaj datę początku ważności."
+                         converterMessage="Podaj datę w formacie RRRR-MM-DD." pt:type="date">
+                <f:convertDateTime type="localDate" pattern="yyyy-MM-dd"/>
+            </h:inputText>
+            <h:message for="validFrom" styleClass="error"/>
+        </div>
+
+        <div class="field">
+            <h:outputLabel for="price" value="Cena (zł)"/>
+            <h:inputText id="price" value="#{bean.permit.price}" required="true"
+                         requiredMessage="Podaj cenę." converterMessage="Cena musi być liczbą."
+                         validatorMessage="Cena nie może być ujemna."
+                         pt:type="number" pt:step="0.01" pt:min="0">
+                <f:validateDoubleRange minimum="0"/>
+            </h:inputText>
+            <h:message for="price" styleClass="error"/>
+        </div>
+
+        <div class="field field-checkbox">
+            <h:selectBooleanCheckbox id="boatFishing" value="#{bean.permit.boatFishing}"/>
+            <h:outputLabel for="boatFishing" value="Łowienie z łodzi"/>
+        </div>
+
+        <h:messages globalOnly="true" styleClass="messages error"/>
+
+        <div class="actions">
+            <h:commandButton value="Zapisz" action="#{bean.save}"/>
+            <h:link outcome="/district/district_view" value="Anuluj" styleClass="button button-secondary"
+                    rendered="#{not empty bean.permit.district}">
+                <f:param name="id" value="#{bean.permit.district.id}"/>
+            </h:link>
+            <h:link outcome="/district/district_list" value="Anuluj" styleClass="button button-secondary"
+                    rendered="#{empty bean.permit.district}"/>
+        </div>
+    </h:form>
+
+</ui:composition>

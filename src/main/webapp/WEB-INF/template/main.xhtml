@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html lang="pl"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:ui="jakarta.faces.facelets"
+      xmlns:f="jakarta.faces.core">
+<f:view locale="pl">
+    <ui:insert name="metadata"/>
+    <h:head>
+        <meta charset="UTF-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <meta name="description" content="Okręgi Polskiego Związku Wędkarskiego i wydawane w nich zezwolenia na połów."/>
+        <meta name="author" content="Kamil Raubo"/>
+        <title><ui:insert name="title"/> · PZW Zezwolenia</title>
+        <h:outputStylesheet library="css" name="style.css"/>
+    </h:head>
+    <h:body>
+        <header class="site-header">
+            <h:link outcome="/district/district_list" styleClass="brand">
+                <h:graphicImage library="img" name="logo.svg" alt="Logo – ryba" width="56" height="56"/>
+                <span class="brand-text">
+                    <span class="brand-name">PZW Zezwolenia</span>
+                    <span class="brand-tagline">Okręgi i zezwolenia wędkarskie</span>
+                </span>
+            </h:link>
+        </header>
+
+        <nav class="site-nav" aria-label="Nawigacja główna">
+            <ul>
+                <li><h:link outcome="/district/district_list" value="Okręgi"/></li>
+                <li><h:link outcome="/permit/permit_create" value="Nowe zezwolenie"/></li>
+                <li><a href="#{request.contextPath}/api/users">API użytkowników</a></li>
+            </ul>
+        </nav>
+
+        <main class="content">
+            <h1><ui:insert name="title"/></h1>
+            <ui:insert name="content"/>
+        </main>
+
+        <footer class="site-footer">
+            <p>PZW Zezwolenia · Narzędzia i Aplikacje Jakarta EE · Kamil Raubo, 2026</p>
+        </footer>
+    </h:body>
+</f:view>
+</html>

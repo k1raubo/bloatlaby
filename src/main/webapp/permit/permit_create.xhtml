@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:f="jakarta.faces.core"
+                template="/WEB-INF/template/main.xhtml">
+
+    <ui:define name="metadata">
+        <f:metadata>
+            <f:viewParam name="district" value="#{permitCreate.districtId}"/>
+            <f:viewAction action="#{permitCreate.init}"/>
+        </f:metadata>
+    </ui:define>
+
+    <ui:define name="title">Nowe zezwolenie</ui:define>
+
+    <ui:define name="content">
+        <section aria-label="Formularz nowego zezwolenia">
+            <ui:include src="/WEB-INF/include/permit_form.xhtml">
+                <ui:param name="bean" value="#{permitCreate}"/>
+            </ui:include>
+        </section>
+    </ui:define>
+
+</ui:composition>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:f="jakarta.faces.core"
+                template="/WEB-INF/template/main.xhtml">
+
+    <ui:define name="metadata">
+        <f:metadata>
+            <f:viewParam name="id" value="#{permitView.id}"/>
+            <f:viewAction action="#{permitView.init}"/>
+        </f:metadata>
+    </ui:define>
+
+    <ui:define name="title">Zezwolenie</ui:define>
+
+    <ui:define name="content">
+        <article aria-label="Szczegóły zezwolenia">
+            <dl class="details">
+                <dt>Identyfikator</dt>
+                <dd><code>#{permitView.permit.id}</code></dd>
+                <dt>Okręg</dt>
+                <dd>
+                    <h:link outcome="/district/district_view" value="#{permitView.permit.district.name}">
+                        <f:param name="id" value="#{permitView.permit.district.id}"/>
+                    </h:link>
+                </dd>
+                <dt>Ważne od</dt>
+                <dd>
+                    <h:outputText value="#{permitView.permit.validFrom}">
+                        <f:convertDateTime type="localDate" pattern="dd.MM.yyyy"/>
+                    </h:outputText>
+                </dd>
+                <dt>Cena</dt>
+                <dd>
+                    <h:outputText value="#{permitView.permit.price}">
+                        <f:convertNumber pattern="#,##0.00"/>
+                    </h:outputText> zł
+                </dd>
+                <dt>Łowienie z łodzi</dt>
+                <dd>#{permitView.permit.boatFishing ? 'Tak' : 'Nie'}</dd>
+            </dl>
+        </article>
+
+        <p class="actions">
+            <h:link outcome="/permit/permit_edit" value="Edytuj" styleClass="button">
+                <f:param name="id" value="#{permitView.permit.id}"/>
+            </h:link>
+            <h:link outcome="/district/district_view" value="← Wróć do okręgu" styleClass="button button-secondary">
+                <f:param name="id" value="#{permitView.permit.district.id}"/>
+            </h:link>
+        </p>
+    </ui:define>
+
+</ui:composition>

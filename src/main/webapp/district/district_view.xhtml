@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:f="jakarta.faces.core"
+                template="/WEB-INF/template/main.xhtml">
+
+    <ui:define name="metadata">
+        <f:metadata>
+            <f:viewParam name="id" value="#{districtView.id}"/>
+            <f:viewAction action="#{districtView.init}"/>
+        </f:metadata>
+    </ui:define>
+
+    <ui:define name="title">#{districtView.district.name}</ui:define>
+
+    <ui:define name="content">
+        <section aria-labelledby="district-info">
+            <h2 id="district-info">Informacje o okręgu</h2>
+            <dl class="details">
+                <dt>Nazwa</dt>
+                <dd>#{districtView.district.name}</dd>
+                <dt>Opłata roczna</dt>
+                <dd>
+                    <h:outputText value="#{districtView.district.annualFee}">
+                        <f:convertNumber pattern="#,##0.00"/>
+                    </h:outputText> zł
+                </dd>
+                <dt>Liczba łowisk</dt>
+                <dd>#{districtView.district.waterCount}</dd>
+            </dl>
+        </section>
+
+        <section aria-labelledby="district-permits">
+            <div class="section-header">
+                <h2 id="district-permits">Zezwolenia</h2>
+                <h:link outcome="/permit/permit_create" value="Dodaj zezwolenie" styleClass="button">
+                    <f:param name="district" value="#{districtView.district.id}"/>
+                </h:link>
+            </div>
+
+            <h:form id="permits">
+                <h:dataTable value="#{districtView.permits}" var="permit" styleClass="data-table"
+                             rendered="#{not empty districtView.permits}">
+                    <h:column>
+                        <f:facet name="header">Ważne od</f:facet>
+                        <h:outputText value="#{permit.validFrom}">
+                            <f:convertDateTime type="localDate" pattern="dd.MM.yyyy"/>
+                        </h:outputText>
+                    </h:column>
+                    <h:column headerClass="number" styleClass="number">
+                        <f:facet name="header">Cena</f:facet>
+                        <h:outputText value="#{permit.price}">
+                            <f:convertNumber pattern="#,##0.00"/>
+                        </h:outputText> zł
+                    </h:column>
+                    <h:column>
+                        <f:facet name="header">Z łodzi</f:facet>
+                        #{permit.boatFishing ? 'Tak' : 'Nie'}
+                    </h:column>
+                    <h:column>
+                        <f:facet name="header">Akcje</f:facet>
+                        <div class="actions">
+                            <h:link outcome="/permit/permit_view" value="Szczegóły" styleClass="button">
+                                <f:param name="id" value="#{permit.id}"/>
+                            </h:link>
+                            <h:link outcome="/permit/permit_edit" value="Edytuj" styleClass="button button-secondary">
+                                <f:param name="id" value="#{permit.id}"/>
+                            </h:link>
+                            <h:commandButton value="Usuń" action="#{districtView.deletePermit(permit)}"
+                                             styleClass="button-danger"
+                                             onclick="return confirm('Usunąć to zezwolenie?')"/>
+                        </div>
+                    </h:column>
+                </h:dataTable>
+                <h:outputText value="W tym okręgu nie wydano jeszcze zezwoleń." styleClass="empty"
+                              rendered="#{empty districtView.permits}"/>
+            </h:form>
+        </section>
+
+        <p><h:link outcome="/district/district_list" value="← Wszystkie okręgi"/></p>
+    </ui:define>
+
+</ui:composition>

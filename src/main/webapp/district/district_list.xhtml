@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:f="jakarta.faces.core"
+                template="/WEB-INF/template/main.xhtml">
+
+    <ui:define name="title">Okręgi</ui:define>
+
+    <ui:define name="content">
+        <section aria-label="Lista okręgów">
+            <h:form id="districts">
+                <h:dataTable value="#{districtList.districts}" var="district" styleClass="data-table"
+                             rendered="#{not empty districtList.districts}">
+                    <h:column>
+                        <f:facet name="header">Nazwa</f:facet>
+                        #{district.name}
+                    </h:column>
+                    <h:column headerClass="number" styleClass="number">
+                        <f:facet name="header">Opłata roczna</f:facet>
+                        <h:outputText value="#{district.annualFee}">
+                            <f:convertNumber pattern="#,##0.00"/>
+                        </h:outputText> zł
+                    </h:column>
+                    <h:column headerClass="number" styleClass="number">
+                        <f:facet name="header">Łowiska</f:facet>
+                        #{district.waterCount}
+                    </h:column>
+                    <h:column>
+                        <f:facet name="header">Akcje</f:facet>
+                        <div class="actions">
+                            <h:link outcome="/district/district_view" value="Szczegóły" styleClass="button">
+                                <f:param name="id" value="#{district.id}"/>
+                            </h:link>
+                            <h:commandButton value="Usuń" action="#{districtList.delete(district)}"
+                                             styleClass="button-danger"
+                                             onclick="return confirm('Usunąć okręg razem z jego zezwoleniami?')"/>
+                        </div>
+                    </h:column>
+                </h:dataTable>
+                <h:outputText value="Brak okręgów." styleClass="empty" rendered="#{empty districtList.districts}"/>
+            </h:form>
+        </section>
+    </ui:define>
+
+</ui:composition>

@@ -48,12 +48,28 @@ public class PermitService {
         return permitRepository.findAllByDistrict(districtRepository.find(districtId).orElseThrow());
     }
 
+    /**
+     * @throws NoSuchElementException if the permit's district does not exist
+     */
     public void create(Permit permit) {
+        attachDistrict(permit);
         permitRepository.create(permit);
     }
 
+    /**
+     * @throws NoSuchElementException if the permit or its district does not exist
+     */
     public void update(Permit permit) {
+        permitRepository.find(permit.getId()).orElseThrow();
+        attachDistrict(permit);
         permitRepository.update(permit);
+    }
+
+    /**
+     * Replaces the district reference (possibly holding only an identifier) with the persisted district.
+     */
+    private void attachDistrict(Permit permit) {
+        permit.setDistrict(districtRepository.find(permit.getDistrict().getId()).orElseThrow());
     }
 
     /**
