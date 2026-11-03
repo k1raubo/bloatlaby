@@ -42,17 +42,32 @@ public class DistrictService {
     }
 
     /**
-     * @throws IllegalArgumentException if a district with the same name already exists
+     * @throws IllegalArgumentException if a district with the same identifier or name already exists
      */
     public void create(District district) {
-        if (districtRepository.findByName(district.getName()).isPresent()) {
-            throw new IllegalArgumentException("District named %s already exists".formatted(district.getName()));
+        if (districtRepository.find(district.getId()).isPresent()) {
+            throw new IllegalArgumentException("District %s already exists".formatted(district.getId()));
         }
+        requireUniqueName(district);
         districtRepository.create(district);
     }
 
+    /**
+     * @throws NoSuchElementException   if the district does not exist
+     * @throws IllegalArgumentException if another district has the same name
+     */
     public void update(District district) {
+        districtRepository.find(district.getId()).orElseThrow();
+        requireUniqueName(district);
         districtRepository.update(district);
+    }
+
+    private void requireUniqueName(District district) {
+        districtRepository.findByName(district.getName())
+                .filter(other -> !other.getId().equals(district.getId()))
+                .ifPresent(other -> {
+                    throw new IllegalArgumentException("District named %s already exists".formatted(district.getName()));
+                });
     }
 
     /**

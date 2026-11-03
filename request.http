@@ -74,3 +74,180 @@ Content-Type: image/png
 
 ### Niedozwolona metoda na użytkowniku (405)
 DELETE http://localhost:9080/pzw/api/users/81e1c2a9-7f57-439b-b53d-6db88b071e4e
+
+### ===== Okręgi (kategorie) =====
+
+### Lista okręgów (200)
+GET http://localhost:9080/pzw/api/districts
+
+### Wybrany okręg, bez zezwoleń (200)
+GET http://localhost:9080/pzw/api/districts/0b8e4c52-6a64-4b4f-9a9e-2c1d5b7f3a10
+
+### Nieistniejący okręg (404)
+GET http://localhost:9080/pzw/api/districts/00000000-0000-0000-0000-000000000000
+
+### Dodanie okręgu (201 + Location)
+PUT http://localhost:9080/pzw/api/districts/11111111-2222-4333-8444-555555555555
+Content-Type: application/json
+
+{
+  "name": "Okręg PZW Słupsk",
+  "annualFee": 150.00,
+  "waterCount": 60
+}
+
+### Ponowne dodanie okręgu o tym samym id (409)
+PUT http://localhost:9080/pzw/api/districts/11111111-2222-4333-8444-555555555555
+Content-Type: application/json
+
+{
+  "name": "Okręg PZW Koszalin"
+}
+
+### Okręg o zajętej nazwie (409)
+PUT http://localhost:9080/pzw/api/districts/99999999-9999-4999-8999-999999999999
+Content-Type: application/json
+
+{
+  "name": "Okręg PZW Gdańsk"
+}
+
+### Okręg bez nazwy (400)
+PUT http://localhost:9080/pzw/api/districts/99999999-9999-4999-8999-999999999999
+Content-Type: application/json
+
+{
+  "annualFee": 100.00
+}
+
+### Niepoprawny JSON (400)
+PUT http://localhost:9080/pzw/api/districts/99999999-9999-4999-8999-999999999999
+Content-Type: application/json
+
+{ "name":
+
+### Modyfikacja wybranych pól okręgu (204)
+PATCH http://localhost:9080/pzw/api/districts/11111111-2222-4333-8444-555555555555
+Content-Type: application/json
+
+{
+  "annualFee": 175.25
+}
+
+### Okręg po modyfikacji (200)
+GET http://localhost:9080/pzw/api/districts/11111111-2222-4333-8444-555555555555
+
+### Zmiana nazwy na zajętą (409)
+PATCH http://localhost:9080/pzw/api/districts/11111111-2222-4333-8444-555555555555
+Content-Type: application/json
+
+{
+  "name": "Okręg PZW Elbląg"
+}
+
+### Modyfikacja nieistniejącego okręgu (404)
+PATCH http://localhost:9080/pzw/api/districts/00000000-0000-0000-0000-000000000000
+Content-Type: application/json
+
+{
+  "waterCount": 1
+}
+
+### Niedozwolona metoda na kolekcji okręgów (405)
+POST http://localhost:9080/pzw/api/districts
+Content-Type: application/json
+
+{
+  "name": "Okręg PZW Koszalin"
+}
+
+### ===== Zezwolenia (elementy) w okręgu =====
+
+### Zezwolenia okręgu Gdańsk (200)
+GET http://localhost:9080/pzw/api/districts/0b8e4c52-6a64-4b4f-9a9e-2c1d5b7f3a10/permits
+
+### Zezwolenia nieistniejącego okręgu (404)
+GET http://localhost:9080/pzw/api/districts/00000000-0000-0000-0000-000000000000/permits
+
+### Wybrane zezwolenie (200)
+GET http://localhost:9080/pzw/api/districts/0b8e4c52-6a64-4b4f-9a9e-2c1d5b7f3a10/permits/6a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c01
+
+### Zezwolenie pobrane przez inny okręg (404)
+GET http://localhost:9080/pzw/api/districts/4d2f8a7e-1c3b-4e5d-8f6a-9b0c1d2e3f40/permits/6a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c01
+
+### Dodanie zezwolenia, okręg wynika z adresu, pole district jest ignorowane (201 + Location)
+PUT http://localhost:9080/pzw/api/districts/11111111-2222-4333-8444-555555555555/permits/22222222-3333-4444-8555-666666666666
+Content-Type: application/json
+
+{
+  "validFrom": "2026-05-01",
+  "price": 150.00,
+  "boatFishing": true,
+  "district": {
+    "id": "0b8e4c52-6a64-4b4f-9a9e-2c1d5b7f3a10"
+  }
+}
+
+### Dodane zezwolenie należy do okręgu Słupsk (200)
+GET http://localhost:9080/pzw/api/districts/11111111-2222-4333-8444-555555555555/permits/22222222-3333-4444-8555-666666666666
+
+### Ponowne dodanie zezwolenia o tym samym id (409)
+PUT http://localhost:9080/pzw/api/districts/11111111-2222-4333-8444-555555555555/permits/22222222-3333-4444-8555-666666666666
+Content-Type: application/json
+
+{
+  "validFrom": "2026-05-01"
+}
+
+### Zezwolenie bez daty (400)
+PUT http://localhost:9080/pzw/api/districts/11111111-2222-4333-8444-555555555555/permits/44444444-4444-4444-8444-444444444444
+Content-Type: application/json
+
+{
+  "price": 10.00
+}
+
+### Zezwolenie w nieistniejącym okręgu (404)
+PUT http://localhost:9080/pzw/api/districts/00000000-0000-0000-0000-000000000000/permits/44444444-4444-4444-8444-444444444444
+Content-Type: application/json
+
+{
+  "validFrom": "2026-05-01"
+}
+
+### Modyfikacja wybranych pól zezwolenia (204)
+PATCH http://localhost:9080/pzw/api/districts/11111111-2222-4333-8444-555555555555/permits/22222222-3333-4444-8555-666666666666
+Content-Type: application/json
+
+{
+  "price": 99.90,
+  "boatFishing": false
+}
+
+### Zezwolenie po modyfikacji (200)
+GET http://localhost:9080/pzw/api/districts/11111111-2222-4333-8444-555555555555/permits/22222222-3333-4444-8555-666666666666
+
+### Modyfikacja przez inny okręg (404)
+PATCH http://localhost:9080/pzw/api/districts/0b8e4c52-6a64-4b4f-9a9e-2c1d5b7f3a10/permits/22222222-3333-4444-8555-666666666666
+Content-Type: application/json
+
+{
+  "price": 1.00
+}
+
+### Usunięcie zezwolenia (204)
+DELETE http://localhost:9080/pzw/api/districts/4d2f8a7e-1c3b-4e5d-8f6a-9b0c1d2e3f40/permits/6a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c03
+
+### Ponowne usunięcie zezwolenia (404)
+DELETE http://localhost:9080/pzw/api/districts/4d2f8a7e-1c3b-4e5d-8f6a-9b0c1d2e3f40/permits/6a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c03
+
+### ===== Usuwanie okręgu wraz z zezwoleniami =====
+
+### Usunięcie okręgu Słupsk razem z jego zezwoleniami (204)
+DELETE http://localhost:9080/pzw/api/districts/11111111-2222-4333-8444-555555555555
+
+### Zezwolenie usuniętego okręgu nie istnieje (404)
+GET http://localhost:9080/pzw/api/districts/11111111-2222-4333-8444-555555555555/permits/22222222-3333-4444-8555-666666666666
+
+### Ponowne usunięcie okręgu (404)
+DELETE http://localhost:9080/pzw/api/districts/11111111-2222-4333-8444-555555555555

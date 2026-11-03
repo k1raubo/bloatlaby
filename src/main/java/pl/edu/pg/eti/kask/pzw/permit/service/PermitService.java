@@ -42,6 +42,13 @@ public class PermitService {
     }
 
     /**
+     * @return the permit only if it was issued for the given district
+     */
+    public Optional<Permit> find(UUID districtId, UUID id) {
+        return permitRepository.find(id).filter(permit -> permit.getDistrict().getId().equals(districtId));
+    }
+
+    /**
      * @throws NoSuchElementException if the district does not exist
      */
     public List<Permit> findAllByDistrict(UUID districtId) {
@@ -49,9 +56,13 @@ public class PermitService {
     }
 
     /**
-     * @throws NoSuchElementException if the permit's district does not exist
+     * @throws NoSuchElementException   if the permit's district does not exist
+     * @throws IllegalArgumentException if a permit with the same identifier already exists
      */
     public void create(Permit permit) {
+        if (permitRepository.find(permit.getId()).isPresent()) {
+            throw new IllegalArgumentException("Permit %s already exists".formatted(permit.getId()));
+        }
         attachDistrict(permit);
         permitRepository.create(permit);
     }
