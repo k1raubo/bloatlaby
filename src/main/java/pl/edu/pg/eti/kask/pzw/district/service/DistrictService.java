@@ -41,7 +41,13 @@ public class DistrictService {
         return districtRepository.findAll();
     }
 
+    /**
+     * @throws IllegalArgumentException if a district with the same name already exists
+     */
     public void create(District district) {
+        if (districtRepository.findByName(district.getName()).isPresent()) {
+            throw new IllegalArgumentException("District named %s already exists".formatted(district.getName()));
+        }
         districtRepository.create(district);
     }
 

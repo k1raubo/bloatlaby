@@ -26,6 +26,13 @@ public class DistrictRepository implements Repository<District, UUID> {
         return em.createQuery("select d from District d order by d.name", District.class).getResultList();
     }
 
+    public Optional<District> findByName(String name) {
+        return em.createQuery("select d from District d where d.name = :name", District.class)
+                .setParameter("name", name)
+                .getResultStream()
+                .findFirst();
+    }
+
     @Override
     public void create(District entity) {
         em.persist(entity);

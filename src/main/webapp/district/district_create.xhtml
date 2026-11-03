@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:ui="jakarta.faces.facelets"
+                xmlns:f="jakarta.faces.core"
+                xmlns:pt="jakarta.faces.passthrough"
+                template="/WEB-INF/template/main.xhtml">
+
+    <ui:define name="title">Nowy okręg</ui:define>
+
+    <ui:define name="content">
+        <section aria-label="Formularz nowego okręgu">
+            <h:form id="district" styleClass="form">
+                <div class="field">
+                    <h:outputLabel for="name" value="Nazwa"/>
+                    <h:inputText id="name" value="#{districtCreate.district.name}" required="true"
+                                 requiredMessage="Podaj nazwę okręgu."
+                                 validatorMessage="Nazwa musi mieć od 3 do 100 znaków."
+                                 pt:placeholder="np. Okręg PZW Warszawa" pt:maxlength="100">
+                        <f:validateLength minimum="3" maximum="100"/>
+                    </h:inputText>
+                    <h:message for="name" styleClass="error"/>
+                </div>
+
+                <div class="field">
+                    <h:outputLabel for="annualFee" value="Opłata roczna (zł)"/>
+                    <h:inputText id="annualFee" value="#{districtCreate.district.annualFee}" required="true"
+                                 requiredMessage="Podaj opłatę roczną." converterMessage="Opłata musi być liczbą."
+                                 validatorMessage="Opłata nie może być ujemna."
+                                 pt:type="number" pt:step="0.01" pt:min="0">
+                        <f:validateDoubleRange minimum="0"/>
+                    </h:inputText>
+                    <h:message for="annualFee" styleClass="error"/>
+                </div>
+
+                <div class="field">
+                    <h:outputLabel for="waterCount" value="Liczba łowisk"/>
+                    <h:inputText id="waterCount" value="#{districtCreate.district.waterCount}" required="true"
+                                 requiredMessage="Podaj liczbę łowisk."
+                                 converterMessage="Liczba łowisk musi być liczbą całkowitą."
+                                 validatorMessage="Liczba łowisk nie może być ujemna."
+                                 pt:type="number" pt:step="1" pt:min="0">
+                        <f:validateLongRange minimum="0"/>
+                    </h:inputText>
+                    <h:message for="waterCount" styleClass="error"/>
+                </div>
+
+                <div class="actions">
+                    <h:commandButton value="Zapisz" action="#{districtCreate.save}"/>
+                    <h:link outcome="/district/district_list" value="Anuluj" styleClass="button button-secondary"/>
+                </div>
+            </h:form>
+        </section>
+    </ui:define>
+
+</ui:composition>

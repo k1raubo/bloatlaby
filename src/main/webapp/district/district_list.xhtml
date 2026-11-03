@@ -9,6 +9,9 @@
 
     <ui:define name="content">
         <section aria-label="Lista okręgów">
+            <p class="actions">
+                <h:link outcome="/district/district_create" value="Dodaj okręg" styleClass="button"/>
+            </p>
             <h:form id="districts">
                 <h:dataTable value="#{districtList.districts}" var="district" styleClass="data-table"
                              rendered="#{not empty districtList.districts}">
