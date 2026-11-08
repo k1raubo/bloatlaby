@@ -64,38 +64,47 @@ public class InitializeData {
     }
 
     private void init() {
-        userService.create(user("c4804e0f-769e-4ab9-9ebe-0578fb4f00a6", "admin", LocalDate.of(1980, 5, 14), Role.ADMIN));
-        userService.create(user("81e1c2a9-7f57-439b-b53d-6db88b071e4e", "kowalski", LocalDate.of(1992, 3, 2), Role.USER));
-        userService.create(user("ed6cfb2a-cad7-47dd-9b56-9d1e3c7a4197", "nowak", LocalDate.of(2001, 11, 23), Role.USER));
-        userService.create(user("f5875513-bf7b-4ae1-b8a5-5b70a1b90e76", "wisniewska", LocalDate.of(1975, 8, 30), Role.USER));
+        User admin = user("c4804e0f-769e-4ab9-9ebe-0578fb4f00a6", "admin", LocalDate.of(1980, 5, 14), Role.ADMIN);
+        User kowalski = user("81e1c2a9-7f57-439b-b53d-6db88b071e4e", "kowalski", LocalDate.of(1992, 3, 2), Role.USER);
+        User nowak = user("ed6cfb2a-cad7-47dd-9b56-9d1e3c7a4197", "nowak", LocalDate.of(2001, 11, 23), Role.USER);
+        User wisniewska = user("f5875513-bf7b-4ae1-b8a5-5b70a1b90e76", "wisniewska", LocalDate.of(1975, 8, 30), Role.USER);
+        userService.create(admin);
+        userService.create(kowalski);
+        userService.create(nowak);
+        userService.create(wisniewska);
 
         District gdansk = district("0b8e4c52-6a64-4b4f-9a9e-2c1d5b7f3a10", "Okręg PZW Gdańsk", "220.00", 140);
         District elblag = district("4d2f8a7e-1c3b-4e5d-8f6a-9b0c1d2e3f40", "Okręg PZW Elbląg", "185.50", 95);
         districtService.create(gdansk);
         districtService.create(elblag);
 
-        permitService.create(permit("6a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c01", LocalDate.of(2026, 1, 1), "220.00", true, gdansk));
-        permitService.create(permit("6a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c02", LocalDate.of(2026, 4, 1), "60.00", false, gdansk));
-        permitService.create(permit("6a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c03", LocalDate.of(2026, 1, 1), "185.50", false, elblag));
+        permitService.create(permit("6a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c01", LocalDate.of(2026, 1, 1), "220.00", true, gdansk, kowalski));
+        permitService.create(permit("6a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c02", LocalDate.of(2026, 4, 1), "60.00", false, gdansk, nowak));
+        permitService.create(permit("6a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c03", LocalDate.of(2026, 1, 1), "185.50", false, elblag, kowalski));
     }
 
     /**
-     * Shows that district and permit services work (no controllers are required at this stage).
+     * Shows that district and permit services work and that both sides of the relationships are kept in sync.
      */
     private void demonstrateServices() {
         districtService.findAll().forEach(district -> LOGGER.info(() -> "District %s: %s, fee %s, waters %d, permits %d"
                 .formatted(district.getId(), district.getName(), district.getAnnualFee(), district.getWaterCount(),
-                        permitService.findAllByDistrict(district.getId()).size())));
-        permitService.findAll().forEach(permit -> LOGGER.info(() -> "Permit %s: district %s, from %s, price %s, boat %b"
-                .formatted(permit.getId(), permit.getDistrict().getName(), permit.getValidFrom(), permit.getPrice(),
-                        permit.isBoatFishing())));
+                        district.getPermits().size())));
+        permitService.findAll().forEach(permit -> LOGGER.info(() -> "Permit %s: district %s, owner %s, from %s, price %s, boat %b"
+                .formatted(permit.getId(), permit.getDistrict().getName(),
+                        permit.getUser() == null ? null : permit.getUser().getLogin(), permit.getValidFrom(),
+                        permit.getPrice(), permit.isBoatFishing())));
+        userService.findAll().forEach(user -> LOGGER.info(() -> "User %s: permits %d"
+                .formatted(user.getLogin(), user.getPermits().size())));
 
+        User nowak = userService.find(UUID.fromString("ed6cfb2a-cad7-47dd-9b56-9d1e3c7a4197")).orElseThrow();
         District demo = district(UUID.randomUUID().toString(), "Okręg demonstracyjny", "100.00", 10);
         districtService.create(demo);
-        Permit permit = permit(UUID.randomUUID().toString(), LocalDate.of(2026, 6, 1), "100.00", false, demo);
+        Permit permit = permit(UUID.randomUUID().toString(), LocalDate.of(2026, 6, 1), "100.00", false, demo, nowak);
         permitService.create(permit);
-        LOGGER.info(() -> "Created demo district with %d permit(s)"
-                .formatted(permitService.findAllByDistrict(demo.getId()).size()));
+        LOGGER.info(() -> "Created demo district with %d permit(s), nowak has %d permit(s)"
+                .formatted(districtService.find(demo.getId()).orElseThrow().getPermits().size(),
+                        userService.find(nowak.getId()).orElseThrow().getPermits().size()));
 
         permit.setPrice(new BigDecimal("80.00"));
         permitService.update(permit);
@@ -103,8 +112,9 @@ public class InitializeData {
                 .formatted(permitService.find(permit.getId()).orElseThrow().getPrice()));
 
         districtService.delete(demo.getId());
-        LOGGER.info(() -> "Deleted demo district, exists: %b, demo permit exists: %b, districts: %d, permits: %d"
+        LOGGER.info(() -> "Deleted demo district, exists: %b, demo permit exists: %b, nowak has %d permit(s), districts: %d, permits: %d"
                 .formatted(districtService.find(demo.getId()).isPresent(), permitService.find(permit.getId()).isPresent(),
+                        userService.find(nowak.getId()).orElseThrow().getPermits().size(),
                         districtService.findAll().size(), permitService.findAll().size()));
     }
 
@@ -126,13 +136,15 @@ public class InitializeData {
         return district;
     }
 
-    private static Permit permit(String id, LocalDate validFrom, String price, boolean boatFishing, District district) {
+    private static Permit permit(String id, LocalDate validFrom, String price, boolean boatFishing, District district,
+                                 User user) {
         Permit permit = new Permit();
         permit.setId(UUID.fromString(id));
         permit.setValidFrom(validFrom);
         permit.setPrice(new BigDecimal(price));
         permit.setBoatFishing(boatFishing);
         permit.setDistrict(district);
+        permit.setUser(user);
         return permit;
     }
 

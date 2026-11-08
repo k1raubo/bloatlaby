@@ -5,8 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
 import pl.edu.pg.eti.kask.pzw.permit.entity.Permit;
 
 import java.time.LocalDate;
@@ -31,9 +31,9 @@ public class User {
     private Role role;
 
     /**
-     * Relationship with permits is not mapped yet.
+     * Inverse side of {@link Permit#getUser()}. Services keep both sides in sync when permits are added or removed.
      */
-    @Transient
+    @OneToMany(mappedBy = "user")
     private List<Permit> permits = new ArrayList<>();
 
     public UUID getId() {

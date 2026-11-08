@@ -23,17 +23,25 @@ public class PermitModel implements Serializable {
 
     private final DistrictModel district;
 
-    public PermitModel(UUID id, LocalDate validFrom, BigDecimal price, boolean boatFishing, DistrictModel district) {
+    /**
+     * Login of the permit's owner, {@code null} if the permit has no owner.
+     */
+    private final String owner;
+
+    public PermitModel(UUID id, LocalDate validFrom, BigDecimal price, boolean boatFishing, DistrictModel district,
+                       String owner) {
         this.id = id;
         this.validFrom = validFrom;
         this.price = price;
         this.boatFishing = boatFishing;
         this.district = district;
+        this.owner = owner;
     }
 
     public static PermitModel from(Permit permit) {
         return new PermitModel(permit.getId(), permit.getValidFrom(), permit.getPrice(), permit.isBoatFishing(),
-                DistrictModel.from(permit.getDistrict()));
+                DistrictModel.from(permit.getDistrict()),
+                permit.getUser() == null ? null : permit.getUser().getLogin());
     }
 
     public UUID getId() {
@@ -54,6 +62,10 @@ public class PermitModel implements Serializable {
 
     public DistrictModel getDistrict() {
         return district;
+    }
+
+    public String getOwner() {
+        return owner;
     }
 
 }

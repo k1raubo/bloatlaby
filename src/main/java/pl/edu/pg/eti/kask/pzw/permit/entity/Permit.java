@@ -6,7 +6,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
 import pl.edu.pg.eti.kask.pzw.district.entity.District;
 import pl.edu.pg.eti.kask.pzw.user.entity.User;
 
@@ -35,9 +34,10 @@ public class Permit {
     private District district;
 
     /**
-     * Relationship with the user is not mapped yet.
+     * Owner of the permit, {@code null} for permits not issued to any user yet.
      */
-    @Transient
+    @ManyToOne
+    @JoinColumn(name = "owner")
     private User user;
 
     public UUID getId() {

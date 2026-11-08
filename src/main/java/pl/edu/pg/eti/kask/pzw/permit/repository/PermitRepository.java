@@ -3,7 +3,6 @@ package pl.edu.pg.eti.kask.pzw.permit.repository;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import pl.edu.pg.eti.kask.pzw.district.entity.District;
 import pl.edu.pg.eti.kask.pzw.permit.entity.Permit;
 import pl.edu.pg.eti.kask.pzw.repository.Repository;
 
@@ -25,12 +24,6 @@ public class PermitRepository implements Repository<Permit, UUID> {
     @Override
     public List<Permit> findAll() {
         return em.createQuery("select p from Permit p order by p.validFrom", Permit.class).getResultList();
-    }
-
-    public List<Permit> findAllByDistrict(District district) {
-        return em.createQuery("select p from Permit p where p.district = :district order by p.validFrom", Permit.class)
-                .setParameter("district", district)
-                .getResultList();
     }
 
     @Override

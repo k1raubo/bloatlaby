@@ -5,7 +5,6 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import pl.edu.pg.eti.kask.pzw.district.entity.District;
 import pl.edu.pg.eti.kask.pzw.district.repository.DistrictRepository;
-import pl.edu.pg.eti.kask.pzw.permit.repository.PermitRepository;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -18,19 +17,16 @@ public class DistrictService {
 
     private final DistrictRepository districtRepository;
 
-    private final PermitRepository permitRepository;
-
     /**
      * Required by CDI to create a client proxy.
      */
     protected DistrictService() {
-        this(null, null);
+        this(null);
     }
 
     @Inject
-    public DistrictService(DistrictRepository districtRepository, PermitRepository permitRepository) {
+    public DistrictService(DistrictRepository districtRepository) {
         this.districtRepository = districtRepository;
-        this.permitRepository = permitRepository;
     }
 
     public Optional<District> find(UUID id) {
@@ -57,8 +53,10 @@ public class DistrictService {
      * @throws IllegalArgumentException if another district has the same name
      */
     public void update(District district) {
-        districtRepository.find(district.getId()).orElseThrow();
+        District current = districtRepository.find(district.getId()).orElseThrow();
         requireUniqueName(district);
+        // Permits are changed only through PermitService; a detached district may carry an outdated list.
+        district.setPermits(current.getPermits());
         districtRepository.update(district);
     }
 
@@ -71,13 +69,16 @@ public class DistrictService {
     }
 
     /**
-     * Deletes the district together with all permits issued for it.
+     * Deletes the district; its permits are removed by cascade. The permits are first removed from their owners, so
+     * users do not keep deleted permits.
      *
      * @throws NoSuchElementException if the district does not exist
      */
     public void delete(UUID id) {
         District district = districtRepository.find(id).orElseThrow();
-        permitRepository.findAllByDistrict(district).forEach(permitRepository::delete);
+        district.getPermits().stream()
+                .filter(permit -> permit.getUser() != null)
+                .forEach(permit -> permit.getUser().getPermits().remove(permit));
         districtRepository.delete(district);
     }
 

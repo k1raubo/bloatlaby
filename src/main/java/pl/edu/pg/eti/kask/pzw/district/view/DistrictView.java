@@ -3,6 +3,7 @@ package pl.edu.pg.eti.kask.pzw.district.view;
 import jakarta.faces.view.ViewScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+import pl.edu.pg.eti.kask.pzw.district.entity.District;
 import pl.edu.pg.eti.kask.pzw.district.model.DistrictModel;
 import pl.edu.pg.eti.kask.pzw.district.service.DistrictService;
 import pl.edu.pg.eti.kask.pzw.permit.model.PermitModel;
@@ -12,7 +13,6 @@ import pl.edu.pg.eti.kask.pzw.view.ViewResponses;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 /**
  * Backing bean of the district details view. View scoped, so the loaded district survives postbacks
@@ -49,17 +49,17 @@ public class DistrictView implements Serializable {
     }
 
     /**
-     * Loads the district and, with a separate query, its permits. Responds with 404 if the district does not exist.
+     * Loads the district together with its permits (fetched with the district, no separate query). Responds with 404
+     * if the district does not exist.
      */
     public void init() {
-        Optional<UUID> districtId = ViewResponses.parseId(id);
-        Optional<DistrictModel> found = districtId.flatMap(districtService::find).map(DistrictModel::from);
+        Optional<District> found = ViewResponses.parseId(id).flatMap(districtService::find);
         if (found.isEmpty()) {
             ViewResponses.notFound();
             return;
         }
-        district = found.get();
-        permits = permitService.findAllByDistrict(district.getId()).stream().map(PermitModel::from).toList();
+        district = DistrictModel.from(found.get());
+        permits = found.get().getPermits().stream().sorted(PermitService.BY_VALID_FROM).map(PermitModel::from).toList();
     }
 
     /**
