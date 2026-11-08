@@ -8,6 +8,7 @@
         <feature>persistence-3.1</feature>
         <feature>faces-4.0</feature>
         <feature>restfulWS-3.1</feature>
+        <feature>beanValidation-3.0</feature>
     </featureManager>
 
     <httpEndpoint id="defaultHttpEndpoint" host="*" httpPort="9080" httpsPort="9443"/>

@@ -2,7 +2,8 @@ package pl.edu.pg.eti.kask.pzw.permit.controller;
 
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.BadRequestException;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.ClientErrorException;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -74,10 +75,7 @@ public class PermitController {
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response putPermit(@PathParam("districtId") UUID districtId, @PathParam("id") UUID id,
-                              PutPermitRequest request, @Context UriInfo uriInfo) {
-        if (request == null || !request.isValid()) {
-            throw new BadRequestException();
-        }
+                              @Valid @NotNull PutPermitRequest request, @Context UriInfo uriInfo) {
         try {
             permitService.create(request.toEntity(id, districtId));
         } catch (NoSuchElementException e) {
@@ -95,10 +93,7 @@ public class PermitController {
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     public void patchPermit(@PathParam("districtId") UUID districtId, @PathParam("id") UUID id,
-                            PatchPermitRequest request) {
-        if (request == null) {
-            throw new BadRequestException();
-        }
+                            @Valid @NotNull PatchPermitRequest request) {
         Permit permit = permitService.find(districtId, id).orElseThrow(NotFoundException::new);
         request.applyTo(permit);
         try {

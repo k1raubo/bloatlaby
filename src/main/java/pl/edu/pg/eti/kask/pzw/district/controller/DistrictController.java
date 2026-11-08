@@ -2,7 +2,8 @@ package pl.edu.pg.eti.kask.pzw.district.controller;
 
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.BadRequestException;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.ClientErrorException;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -69,10 +70,8 @@ public class DistrictController {
     @PUT
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response putDistrict(@PathParam("id") UUID id, PutDistrictRequest request, @Context UriInfo uriInfo) {
-        if (request == null || !request.isValid()) {
-            throw new BadRequestException();
-        }
+    public Response putDistrict(@PathParam("id") UUID id, @Valid @NotNull PutDistrictRequest request,
+                                @Context UriInfo uriInfo) {
         try {
             districtService.create(request.toEntity(id));
         } catch (IllegalArgumentException e) {
@@ -87,10 +86,7 @@ public class DistrictController {
     @PATCH
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public void patchDistrict(@PathParam("id") UUID id, PatchDistrictRequest request) {
-        if (request == null || !request.isValid()) {
-            throw new BadRequestException();
-        }
+    public void patchDistrict(@PathParam("id") UUID id, @Valid @NotNull PatchDistrictRequest request) {
         District district = districtService.find(id).orElseThrow(NotFoundException::new);
         request.applyTo(district);
         try {

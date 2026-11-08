@@ -1,81 +1,4 @@
-### Lista użytkowników (200)
-GET http://localhost:9080/pzw/api/users
-
-### Wybrany użytkownik (200)
-GET http://localhost:9080/pzw/api/users/81e1c2a9-7f57-439b-b53d-6db88b071e4e
-
-### Nieistniejący użytkownik (404)
-GET http://localhost:9080/pzw/api/users/00000000-0000-0000-0000-000000000000
-
-### Avatar jeszcze nie istnieje (404)
-GET http://localhost:9080/pzw/api/users/81e1c2a9-7f57-439b-b53d-6db88b071e4e/avatar
-
-### Wgranie avatara (201)
-PUT http://localhost:9080/pzw/api/users/81e1c2a9-7f57-439b-b53d-6db88b071e4e/avatar
-Content-Type: multipart/form-data; boundary=boundary
-
---boundary
-Content-Disposition: form-data; name="avatar"; filename="avatar.png"
-Content-Type: image/png
-
-< ./sample/avatar.png
---boundary--
-
-### Pobranie avatara (200)
-GET http://localhost:9080/pzw/api/users/81e1c2a9-7f57-439b-b53d-6db88b071e4e/avatar
-
-### Nadpisanie avatara (204)
-PUT http://localhost:9080/pzw/api/users/81e1c2a9-7f57-439b-b53d-6db88b071e4e/avatar
-Content-Type: multipart/form-data; boundary=boundary
-
---boundary
-Content-Disposition: form-data; name="avatar"; filename="avatar2.png"
-Content-Type: image/png
-
-< ./sample/avatar2.png
---boundary--
-
-### Pobranie nadpisanego avatara (200)
-GET http://localhost:9080/pzw/api/users/81e1c2a9-7f57-439b-b53d-6db88b071e4e/avatar
-
-### Usunięcie avatara (204)
-DELETE http://localhost:9080/pzw/api/users/81e1c2a9-7f57-439b-b53d-6db88b071e4e/avatar
-
-### Ponowne usunięcie avatara (404)
-DELETE http://localhost:9080/pzw/api/users/81e1c2a9-7f57-439b-b53d-6db88b071e4e/avatar
-
-### Avatar nieistniejącego użytkownika (404)
-PUT http://localhost:9080/pzw/api/users/00000000-0000-0000-0000-000000000000/avatar
-Content-Type: multipart/form-data; boundary=boundary
-
---boundary
-Content-Disposition: form-data; name="avatar"; filename="avatar.png"
-Content-Type: image/png
-
-< ./sample/avatar.png
---boundary--
-
-### Plik niebędący obrazem (415)
-PUT http://localhost:9080/pzw/api/users/81e1c2a9-7f57-439b-b53d-6db88b071e4e/avatar
-Content-Type: multipart/form-data; boundary=boundary
-
---boundary
-Content-Disposition: form-data; name="avatar"; filename="tekst.txt"
-Content-Type: text/plain
-
-to nie jest obraz
---boundary--
-
-### Żądanie bez multipart/form-data (415)
-PUT http://localhost:9080/pzw/api/users/81e1c2a9-7f57-439b-b53d-6db88b071e4e/avatar
-Content-Type: image/png
-
-< ./sample/avatar.png
-
-### Niedozwolona metoda na użytkowniku (405)
-DELETE http://localhost:9080/pzw/api/users/81e1c2a9-7f57-439b-b53d-6db88b071e4e
-
-### ===== Okręgi (kategorie) =====
+### ===== Okręgi =====
 
 ### Lista okręgów (200)
 GET http://localhost:9080/pzw/api/districts
@@ -120,6 +43,20 @@ Content-Type: application/json
   "annualFee": 100.00
 }
 
+### Okręg z błędnymi polami, lista naruszonych ograniczeń (400)
+PUT http://localhost:9080/pzw/api/districts/99999999-9999-4999-8999-999999999999
+Content-Type: application/json
+
+{
+  "name": "Ab",
+  "annualFee": -5.00,
+  "waterCount": -1
+}
+
+### Okręg bez treści żądania (400)
+PUT http://localhost:9080/pzw/api/districts/99999999-9999-4999-8999-999999999999
+Content-Type: application/json
+
 ### Niepoprawny JSON (400)
 PUT http://localhost:9080/pzw/api/districts/99999999-9999-4999-8999-999999999999
 Content-Type: application/json
@@ -131,7 +68,7 @@ PATCH http://localhost:9080/pzw/api/districts/11111111-2222-4333-8444-5555555555
 Content-Type: application/json
 
 {
-  "annualFee": 175.25
+  "name": "Okręg PZW Warszawa"
 }
 
 ### Okręg po modyfikacji (200)
@@ -143,6 +80,14 @@ Content-Type: application/json
 
 {
   "name": "Okręg PZW Elbląg"
+}
+
+### Zmiana nazwy na pustą (400)
+PATCH http://localhost:9080/pzw/api/districts/11111111-2222-4333-8444-555555555555
+Content-Type: application/json
+
+{
+  "name": "   "
 }
 
 ### Modyfikacja nieistniejącego okręgu (404)
@@ -161,7 +106,7 @@ Content-Type: application/json
   "name": "Okręg PZW Koszalin"
 }
 
-### ===== Zezwolenia (elementy) w okręgu =====
+### ===== Zezwolenia w okręgu =====
 
 ### Zezwolenia okręgu Gdańsk (200)
 GET http://localhost:9080/pzw/api/districts/0b8e4c52-6a64-4b4f-9a9e-2c1d5b7f3a10/permits
@@ -207,6 +152,15 @@ Content-Type: application/json
   "price": 10.00
 }
 
+### Zezwolenie z ujemną ceną (400)
+PUT http://localhost:9080/pzw/api/districts/11111111-2222-4333-8444-555555555555/permits/44444444-4444-4444-8444-444444444444
+Content-Type: application/json
+
+{
+  "validFrom": "2026-05-01",
+  "price": -10.00
+}
+
 ### Zezwolenie w nieistniejącym okręgu (404)
 PUT http://localhost:9080/pzw/api/districts/00000000-0000-0000-0000-000000000000/permits/44444444-4444-4444-8444-444444444444
 Content-Type: application/json
@@ -216,12 +170,19 @@ Content-Type: application/json
 }
 
 ### Modyfikacja wybranych pól zezwolenia (204)
-PATCH http://localhost:9080/pzw/api/districts/11111111-2222-4333-8444-555555555555/permits/22222222-3333-4444-8555-666666666666
+PATCH http://localhost:9080/pzw/api/districts/0b8e4c52-6a64-4b4f-9a9e-2c1d5b7f3a10/permits/6a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c01
 Content-Type: application/json
 
 {
-  "price": 99.90,
-  "boatFishing": false
+  "validFrom": "2020-01-01"
+}
+
+### Modyfikacja zezwolenia z ceną o zbyt wielu miejscach po przecinku (400)
+PATCH http://localhost:9080/pzw/api/districts/0b8e4c52-6a64-4b4f-9a9e-2c1d5b7f3a10/permits/6a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c01
+Content-Type: application/json
+
+{
+  "price": 12.345
 }
 
 ### Zezwolenie po modyfikacji (200)
@@ -236,7 +197,7 @@ Content-Type: application/json
 }
 
 ### Usunięcie zezwolenia (204)
-DELETE http://localhost:9080/pzw/api/districts/4d2f8a7e-1c3b-4e5d-8f6a-9b0c1d2e3f40/permits/6a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c03
+DELETE http://localhost:9080/pzw/api/districts/0b8e4c52-6a64-4b4f-9a9e-2c1d5b7f3a10/permits/6a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c01
 
 ### Ponowne usunięcie zezwolenia (404)
 DELETE http://localhost:9080/pzw/api/districts/4d2f8a7e-1c3b-4e5d-8f6a-9b0c1d2e3f40/permits/6a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c03
@@ -244,7 +205,7 @@ DELETE http://localhost:9080/pzw/api/districts/4d2f8a7e-1c3b-4e5d-8f6a-9b0c1d2e3
 ### ===== Usuwanie okręgu wraz z zezwoleniami =====
 
 ### Usunięcie okręgu Słupsk razem z jego zezwoleniami (204)
-DELETE http://localhost:9080/pzw/api/districts/11111111-2222-4333-8444-555555555555
+DELETE http://localhost:9080/pzw/api/districts/0b8e4c52-6a64-4b4f-9a9e-2c1d5b7f3a10
 
 ### Zezwolenie usuniętego okręgu nie istnieje (404)
 GET http://localhost:9080/pzw/api/districts/11111111-2222-4333-8444-555555555555/permits/22222222-3333-4444-8555-666666666666
