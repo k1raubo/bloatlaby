@@ -1,0 +1,24 @@
+server:
+  port: 9000
+
+spring:
+  application:
+    name: identity-provider
+  # Database of the PZW application, opened by the application server first (AUTO_SERVER). The relative path assumes
+  # the provider is started from the identity-provider directory (IntelliJ run configuration or mvn spring-boot:run).
+  datasource:
+    url: jdbc:h2:file:./../database/pzw;AUTO_SERVER=TRUE
+    username: sa
+    password: sa
+  sql:
+    init:
+      mode: never
+
+pzw:
+  # Value of the iss claim, the PZW application accepts only tokens issued by this provider
+  issuer: http://localhost:9000
+  client:
+    id: pzw
+    secret: secret
+    # Where the authorization code is sent; IntelliJ HTTP Client requests read it from the redirect
+    redirect-uri: http://127.0.0.1:1234/callback

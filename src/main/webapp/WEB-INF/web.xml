@@ -9,6 +9,22 @@
         <param-value>avatars</param-value>
     </context-param>
 
+    <!-- Access tokens are accepted only from this identity provider and only if issued for this application -->
+    <context-param>
+        <param-name>jwt.issuer</param-name>
+        <param-value>http://localhost:9000</param-value>
+    </context-param>
+
+    <context-param>
+        <param-name>jwt.jwksUri</param-name>
+        <param-value>http://localhost:9000/oauth2/jwks</param-value>
+    </context-param>
+
+    <context-param>
+        <param-name>jwt.audience</param-name>
+        <param-value>pzw</param-value>
+    </context-param>
+
     <context-param>
         <param-name>jakarta.faces.PROJECT_STAGE</param-name>
         <param-value>Development</param-value>
@@ -28,6 +44,13 @@
         <servlet-name>facesServlet</servlet-name>
         <url-pattern>*.xhtml</url-pattern>
     </servlet-mapping>
+
+    <security-role>
+        <role-name>ADMIN</role-name>
+    </security-role>
+    <security-role>
+        <role-name>USER</role-name>
+    </security-role>
 
     <welcome-file-list>
         <welcome-file>district/district_list.xhtml</welcome-file>

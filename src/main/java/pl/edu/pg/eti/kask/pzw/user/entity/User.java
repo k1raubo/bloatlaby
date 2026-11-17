@@ -26,6 +26,13 @@ public class User {
 
     private LocalDate birthday;
 
+    /**
+     * PBKDF2 hash of the password in the Jakarta Security format
+     * ({@code algorithm:iterations:base64(salt):base64(hash)}), also verified by the identity provider.
+     */
+    @Column(nullable = false)
+    private String password;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
@@ -58,6 +65,14 @@ public class User {
 
     public void setBirthday(LocalDate birthday) {
         this.birthday = birthday;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public Role getRole() {

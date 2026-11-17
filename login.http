@@ -1,0 +1,322 @@
+# Rejestracja i logowanie. Uruchom ten plik w całości (Run All) przed request.http i crud.http.
+#
+# Logowanie to przepływ OAuth2 Authorization Code wykonany tak, jak zrobiłaby to przeglądarka: żądanie autoryzacji,
+# formularz logowania dostawcy tożsamości, kod autoryzacji w przekierowaniu i wymiana kodu na token. Klient pzw ma
+# hasło "secret" (nagłówek Basic). Każde logowanie zaczyna nową sesję u dostawcy (cookie przekazywane ręcznie), więc
+# kolejni użytkownicy nie przejmują sesji poprzedniego. Tokeny trafiają do zmiennych globalnych używanych w innych
+# plikach: {{adminToken}}, {{kowalskiToken}}, {{nowakToken}}, {{zielinskiToken}}.
+#
+# Konta testowe (hasło = login): admin (ADMIN), kowalski, nowak, wisniewska (USER).
+
+### ===== Rejestracja (bez uwierzytelniania) =====
+
+### Rejestracja nowego użytkownika, rola ADMIN jest ignorowana, każdy nowy użytkownik ma rolę USER (201 + Location)
+PUT http://localhost:9080/pzw/api/users/33333333-4444-4555-8666-777777777777
+Content-Type: application/json
+
+{
+  "login": "zielinski",
+  "password": "tajne123",
+  "birthday": "1990-01-01",
+  "role": "ADMIN"
+}
+
+### Ponowna rejestracja z tym samym id (409)
+PUT http://localhost:9080/pzw/api/users/33333333-4444-4555-8666-777777777777
+Content-Type: application/json
+
+{
+  "login": "zielinski2",
+  "password": "tajne123"
+}
+
+### Rejestracja z zajętym loginem (409)
+PUT http://localhost:9080/pzw/api/users/44444444-4444-4444-8444-444444444444
+Content-Type: application/json
+
+{
+  "login": "kowalski",
+  "password": "tajne123"
+}
+
+### Rejestracja z błędnymi danymi, lista naruszonych ograniczeń (400)
+PUT http://localhost:9080/pzw/api/users/44444444-4444-4444-8444-444444444444
+Content-Type: application/json
+
+{
+  "login": "x",
+  "password": "1"
+}
+
+### ===== Dostawca tożsamości =====
+
+### Konfiguracja OpenID Connect dostawcy (200)
+GET http://localhost:9000/.well-known/openid-configuration
+
+### Klucze publiczne, którymi aplikacja weryfikuje podpis tokenów (200)
+GET http://localhost:9000/oauth2/jwks
+
+### ===== Logowanie: admin =====
+
+### admin: 1. żądanie autoryzacji, dostawca przekierowuje na formularz logowania (302)
+# @no-redirect
+# @no-cookie-jar
+GET http://localhost:9000/oauth2/authorize?response_type=code&client_id=pzw&scope=openid&redirect_uri=http://127.0.0.1:1234/callback&state=admin
+
+> {%
+    client.global.set("idpSession", response.headers.valuesOf("Set-Cookie")
+        .map(cookie => cookie.split(";")[0]).find(cookie => cookie.startsWith("JSESSIONID=")));
+%}
+
+### admin: 2. formularz logowania, odczyt tokenu CSRF (200)
+# @no-cookie-jar
+GET http://localhost:9000/login
+Cookie: {{idpSession}}
+
+> {%
+    client.global.set("idpCsrf", response.body.match(/name="_csrf"[^>]*value="([^"]+)"/)[1]);
+%}
+
+### admin: 3. wysłanie loginu i hasła, powrót do żądania autoryzacji (302)
+# @no-redirect
+# @no-cookie-jar
+POST http://localhost:9000/login
+Cookie: {{idpSession}}
+Content-Type: application/x-www-form-urlencoded
+
+username=admin&password=admin&_csrf={{idpCsrf}}
+
+> {%
+    const session = (response.headers.valuesOf("Set-Cookie") || [])
+        .map(cookie => cookie.split(";")[0]).find(cookie => cookie.startsWith("JSESSIONID="));
+    if (session) {
+        client.global.set("idpSession", session);
+    }
+    client.global.set("idpNext", response.headers.valueOf("Location"));
+%}
+
+### admin: 4. ponowne żądanie autoryzacji, przekierowanie z kodem autoryzacji (302)
+# @no-redirect
+# @no-cookie-jar
+GET {{idpNext}}
+Cookie: {{idpSession}}
+
+> {%
+    client.global.set("idpCode", response.headers.valueOf("Location").match(/[?&]code=([^&]+)/)[1]);
+%}
+
+### admin: 5. wymiana kodu na token dostępu JWT (200)
+# @no-cookie-jar
+POST http://localhost:9000/oauth2/token
+Authorization: Basic cHp3OnNlY3JldA==
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=authorization_code&code={{idpCode}}&redirect_uri=http://127.0.0.1:1234/callback
+
+> {%
+    client.global.set("adminToken", response.body.access_token);
+%}
+
+### ===== Logowanie: kowalski =====
+
+### kowalski: 1. żądanie autoryzacji, dostawca przekierowuje na formularz logowania (302)
+# @no-redirect
+# @no-cookie-jar
+GET http://localhost:9000/oauth2/authorize?response_type=code&client_id=pzw&scope=openid&redirect_uri=http://127.0.0.1:1234/callback&state=kowalski
+
+> {%
+    client.global.set("idpSession", response.headers.valuesOf("Set-Cookie")
+        .map(cookie => cookie.split(";")[0]).find(cookie => cookie.startsWith("JSESSIONID=")));
+%}
+
+### kowalski: 2. formularz logowania, odczyt tokenu CSRF (200)
+# @no-cookie-jar
+GET http://localhost:9000/login
+Cookie: {{idpSession}}
+
+> {%
+    client.global.set("idpCsrf", response.body.match(/name="_csrf"[^>]*value="([^"]+)"/)[1]);
+%}
+
+### kowalski: 3. wysłanie loginu i hasła, powrót do żądania autoryzacji (302)
+# @no-redirect
+# @no-cookie-jar
+POST http://localhost:9000/login
+Cookie: {{idpSession}}
+Content-Type: application/x-www-form-urlencoded
+
+username=kowalski&password=kowalski&_csrf={{idpCsrf}}
+
+> {%
+    const session = (response.headers.valuesOf("Set-Cookie") || [])
+        .map(cookie => cookie.split(";")[0]).find(cookie => cookie.startsWith("JSESSIONID="));
+    if (session) {
+        client.global.set("idpSession", session);
+    }
+    client.global.set("idpNext", response.headers.valueOf("Location"));
+%}
+
+### kowalski: 4. ponowne żądanie autoryzacji, przekierowanie z kodem autoryzacji (302)
+# @no-redirect
+# @no-cookie-jar
+GET {{idpNext}}
+Cookie: {{idpSession}}
+
+> {%
+    client.global.set("idpCode", response.headers.valueOf("Location").match(/[?&]code=([^&]+)/)[1]);
+%}
+
+### kowalski: 5. wymiana kodu na token dostępu JWT (200)
+# @no-cookie-jar
+POST http://localhost:9000/oauth2/token
+Authorization: Basic cHp3OnNlY3JldA==
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=authorization_code&code={{idpCode}}&redirect_uri=http://127.0.0.1:1234/callback
+
+> {%
+    client.global.set("kowalskiToken", response.body.access_token);
+%}
+
+### ===== Logowanie: nowak =====
+
+### nowak: 1. żądanie autoryzacji, dostawca przekierowuje na formularz logowania (302)
+# @no-redirect
+# @no-cookie-jar
+GET http://localhost:9000/oauth2/authorize?response_type=code&client_id=pzw&scope=openid&redirect_uri=http://127.0.0.1:1234/callback&state=nowak
+
+> {%
+    client.global.set("idpSession", response.headers.valuesOf("Set-Cookie")
+        .map(cookie => cookie.split(";")[0]).find(cookie => cookie.startsWith("JSESSIONID=")));
+%}
+
+### nowak: 2. formularz logowania, odczyt tokenu CSRF (200)
+# @no-cookie-jar
+GET http://localhost:9000/login
+Cookie: {{idpSession}}
+
+> {%
+    client.global.set("idpCsrf", response.body.match(/name="_csrf"[^>]*value="([^"]+)"/)[1]);
+%}
+
+### nowak: 3. wysłanie loginu i hasła, powrót do żądania autoryzacji (302)
+# @no-redirect
+# @no-cookie-jar
+POST http://localhost:9000/login
+Cookie: {{idpSession}}
+Content-Type: application/x-www-form-urlencoded
+
+username=nowak&password=nowak&_csrf={{idpCsrf}}
+
+> {%
+    const session = (response.headers.valuesOf("Set-Cookie") || [])
+        .map(cookie => cookie.split(";")[0]).find(cookie => cookie.startsWith("JSESSIONID="));
+    if (session) {
+        client.global.set("idpSession", session);
+    }
+    client.global.set("idpNext", response.headers.valueOf("Location"));
+%}
+
+### nowak: 4. ponowne żądanie autoryzacji, przekierowanie z kodem autoryzacji (302)
+# @no-redirect
+# @no-cookie-jar
+GET {{idpNext}}
+Cookie: {{idpSession}}
+
+> {%
+    client.global.set("idpCode", response.headers.valueOf("Location").match(/[?&]code=([^&]+)/)[1]);
+%}
+
+### nowak: 5. wymiana kodu na token dostępu JWT (200)
+# @no-cookie-jar
+POST http://localhost:9000/oauth2/token
+Authorization: Basic cHp3OnNlY3JldA==
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=authorization_code&code={{idpCode}}&redirect_uri=http://127.0.0.1:1234/callback
+
+> {%
+    client.global.set("nowakToken", response.body.access_token);
+%}
+
+### ===== Logowanie: zielinski =====
+
+### zielinski: 1. żądanie autoryzacji, dostawca przekierowuje na formularz logowania (302)
+# @no-redirect
+# @no-cookie-jar
+GET http://localhost:9000/oauth2/authorize?response_type=code&client_id=pzw&scope=openid&redirect_uri=http://127.0.0.1:1234/callback&state=zielinski
+
+> {%
+    client.global.set("idpSession", response.headers.valuesOf("Set-Cookie")
+        .map(cookie => cookie.split(";")[0]).find(cookie => cookie.startsWith("JSESSIONID=")));
+%}
+
+### zielinski: 2. formularz logowania, odczyt tokenu CSRF (200)
+# @no-cookie-jar
+GET http://localhost:9000/login
+Cookie: {{idpSession}}
+
+> {%
+    client.global.set("idpCsrf", response.body.match(/name="_csrf"[^>]*value="([^"]+)"/)[1]);
+%}
+
+### zielinski: 3. wysłanie loginu i hasła, powrót do żądania autoryzacji (302)
+# @no-redirect
+# @no-cookie-jar
+POST http://localhost:9000/login
+Cookie: {{idpSession}}
+Content-Type: application/x-www-form-urlencoded
+
+username=zielinski&password=tajne123&_csrf={{idpCsrf}}
+
+> {%
+    const session = (response.headers.valuesOf("Set-Cookie") || [])
+        .map(cookie => cookie.split(";")[0]).find(cookie => cookie.startsWith("JSESSIONID="));
+    if (session) {
+        client.global.set("idpSession", session);
+    }
+    client.global.set("idpNext", response.headers.valueOf("Location"));
+%}
+
+### zielinski: 4. ponowne żądanie autoryzacji, przekierowanie z kodem autoryzacji (302)
+# @no-redirect
+# @no-cookie-jar
+GET {{idpNext}}
+Cookie: {{idpSession}}
+
+> {%
+    client.global.set("idpCode", response.headers.valueOf("Location").match(/[?&]code=([^&]+)/)[1]);
+%}
+
+### zielinski: 5. wymiana kodu na token dostępu JWT (200)
+# @no-cookie-jar
+POST http://localhost:9000/oauth2/token
+Authorization: Basic cHp3OnNlY3JldA==
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=authorization_code&code={{idpCode}}&redirect_uri=http://127.0.0.1:1234/callback
+
+> {%
+    client.global.set("zielinskiToken", response.body.access_token);
+%}
+
+### ===== Błędne logowanie =====
+
+### Nowa sesja: formularz logowania (200)
+# @no-cookie-jar
+GET http://localhost:9000/login
+
+> {%
+    client.global.set("idpSession", response.headers.valuesOf("Set-Cookie")
+        .map(cookie => cookie.split(";")[0]).find(cookie => cookie.startsWith("JSESSIONID=")));
+    client.global.set("idpCsrf", response.body.match(/name="_csrf"[^>]*value="([^"]+)"/)[1]);
+%}
+
+### Błędne hasło, dostawca wraca do formularza z błędem (302 -> /login?error)
+# @no-redirect
+# @no-cookie-jar
+POST http://localhost:9000/login
+Cookie: {{idpSession}}
+Content-Type: application/x-www-form-urlencoded
+
+username=admin&password=zle-haslo&_csrf={{idpCsrf}}

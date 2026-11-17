@@ -13,6 +13,8 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- Database file shared with the identity provider (identity-provider/src/main/resources/application.yml) -->
+        <liberty.var.pzwDatabase>${project.basedir}/database/pzw</liberty.var.pzwDatabase>
     </properties>
 
     <dependencies>
@@ -21,6 +23,12 @@
             <artifactId>jakarta.jakartaee-web-api</artifactId>
             <version>10.0.0</version>
             <scope>provided</scope>
+        </dependency>
+        <!-- Verification of access tokens (JWT) issued by the identity provider -->
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+            <version>9.37.3</version>
         </dependency>
         <!-- JDBC driver is provided by the application server (copied to its lib directory) -->
         <dependency>

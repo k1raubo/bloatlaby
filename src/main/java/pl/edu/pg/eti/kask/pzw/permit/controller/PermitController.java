@@ -1,5 +1,6 @@
 package pl.edu.pg.eti.kask.pzw.permit.controller;
 
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -24,15 +25,18 @@ import pl.edu.pg.eti.kask.pzw.permit.dto.PatchPermitRequest;
 import pl.edu.pg.eti.kask.pzw.permit.dto.PutPermitRequest;
 import pl.edu.pg.eti.kask.pzw.permit.entity.Permit;
 import pl.edu.pg.eti.kask.pzw.permit.service.PermitService;
+import pl.edu.pg.eti.kask.pzw.user.entity.UserRoles;
 
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
 /**
  * Permits (elements) as a REST resource nested under their district. The district is always taken from the address,
- * and a permit addressed through a district it does not belong to is reported as not found.
+ * and a permit addressed through a district it does not belong to is reported as not found. Which permits the caller
+ * may see and change (all for administrators, own ones for users) is decided by {@link PermitService}.
  */
 @Path("/districts/{districtId}/permits")
+@RolesAllowed({UserRoles.ADMIN, UserRoles.USER})
 @RequestScoped
 @Produces(MediaType.APPLICATION_JSON)
 public class PermitController {

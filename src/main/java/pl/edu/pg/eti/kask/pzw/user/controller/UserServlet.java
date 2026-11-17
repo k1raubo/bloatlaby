@@ -2,6 +2,7 @@ package pl.edu.pg.eti.kask.pzw.user.controller;
 
 import jakarta.inject.Inject;
 import jakarta.json.bind.Jsonb;
+import jakarta.json.bind.JsonbException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
@@ -9,19 +10,30 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
+import pl.edu.pg.eti.kask.pzw.configuration.ConstraintViolationExceptionMapper.Violation;
+import pl.edu.pg.eti.kask.pzw.configuration.ConstraintViolationExceptionMapper.ViolationsResponse;
 import pl.edu.pg.eti.kask.pzw.user.dto.GetUserResponse;
 import pl.edu.pg.eti.kask.pzw.user.dto.GetUsersResponse;
+import pl.edu.pg.eti.kask.pzw.user.dto.PutUserRequest;
 import pl.edu.pg.eti.kask.pzw.user.service.AvatarService;
 import pl.edu.pg.eti.kask.pzw.user.service.UserService;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URLConnection;
+import java.util.Comparator;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Users REST API (implemented as a servlet since lab 1). Not secured: anybody may register with {@code PUT
+ * /api/users/{id}}.
+ */
 @WebServlet(urlPatterns = "/api/users/*")
 @MultipartConfig(maxFileSize = 1024 * 1024)
 public class UserServlet extends HttpServlet {
@@ -44,6 +56,9 @@ public class UserServlet extends HttpServlet {
 
     @Inject
     private AvatarService avatarService;
+
+    @Inject
+    private Validator validator;
 
     @Override
     protected void service(HttpServletRequest request, HttpServletResponse response)
@@ -77,6 +92,11 @@ public class UserServlet extends HttpServlet {
     @Override
     protected void doPut(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        Matcher user = USER.matcher(path(request));
+        if (user.matches()) {
+            register(request, response, id(user));
+            return;
+        }
         Matcher avatar = AVATAR.matcher(path(request));
         if (!avatar.matches()) {
             rejectReadOnly(request, response);
@@ -122,10 +142,52 @@ public class UserServlet extends HttpServlet {
         response.setStatus(HttpServletResponse.SC_NO_CONTENT);
     }
 
+    /**
+     * Registers a new user under the given identifier: 201 with its address, 400 for invalid data, 409 if the
+     * identifier or login is taken.
+     */
+    private void register(HttpServletRequest request, HttpServletResponse response, UUID id) throws IOException {
+        if (request.getContentType() == null || !request.getContentType().startsWith("application/json")) {
+            response.sendError(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
+            return;
+        }
+        PutUserRequest body;
+        try {
+            body = jsonb.fromJson(request.getReader(), PutUserRequest.class);
+        } catch (JsonbException e) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+        if (body == null) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+        Set<ConstraintViolation<PutUserRequest>> violations = validator.validate(body);
+        if (!violations.isEmpty()) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            sendJson(response, new ViolationsResponse(violations.stream()
+                    .map(violation -> new Violation(violation.getPropertyPath().toString(), violation.getMessage()))
+                    .sorted(Comparator.comparing(Violation::field))
+                    .toList()));
+            return;
+        }
+        try {
+            userService.register(body.toEntity(id), body.password());
+        } catch (IllegalArgumentException e) {
+            response.sendError(HttpServletResponse.SC_CONFLICT);
+            return;
+        }
+        response.setHeader("Location", request.getRequestURL().toString());
+        response.setStatus(HttpServletResponse.SC_CREATED);
+    }
+
     private void rejectReadOnly(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String path = path(request);
-        if (USERS.matcher(path).matches() || USER.matcher(path).matches()) {
+        if (USERS.matcher(path).matches()) {
             response.setHeader("Allow", "GET");
+            response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        } else if (USER.matcher(path).matches()) {
+            response.setHeader("Allow", "GET, PUT");
             response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
         } else {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);

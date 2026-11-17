@@ -9,6 +9,7 @@
         <feature>faces-4.0</feature>
         <feature>restfulWS-3.1</feature>
         <feature>beanValidation-3.0</feature>
+        <feature>appSecurity-5.0</feature>
     </featureManager>
 
     <httpEndpoint id="defaultHttpEndpoint" host="*" httpPort="9080" httpsPort="9443"/>
@@ -17,10 +18,16 @@
         <fileset dir="${server.config.dir}/lib" includes="h2.jar"/>
     </library>
 
-    <!-- H2 database stored in a file, started together with the application server -->
+    <!--
+        H2 database stored in a file shared with the identity provider (identity-provider project). The first process
+        that opens it (this server) also serves it to the other one (AUTO_SERVER). The location is set by the Maven
+        build (liberty.var.pzwDatabase in pom.xml), the default is used when the server is started otherwise.
+    -->
+    <variable name="pzwDatabase" defaultValue="${server.output.dir}/database/pzw"/>
+
     <dataSource id="pzwDataSource" jndiName="jdbc/pzw">
         <jdbcDriver libraryRef="h2Library" javax.sql.XADataSource="org.h2.jdbcx.JdbcDataSource"/>
-        <properties URL="jdbc:h2:file:${server.output.dir}/database/pzw" user="sa" password="sa"/>
+        <properties URL="jdbc:h2:file:${pzwDatabase};AUTO_SERVER=TRUE" user="sa" password="sa"/>
     </dataSource>
 
     <webApplication location="PZW.war" contextRoot="/pzw"/>

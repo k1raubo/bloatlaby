@@ -38,3 +38,5 @@ build/
 
 ### Mac OS ###
 .DS_Store
+### Database shared by the application and the identity provider ###
+database/

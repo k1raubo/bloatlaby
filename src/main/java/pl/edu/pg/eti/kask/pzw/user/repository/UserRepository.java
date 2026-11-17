@@ -26,6 +26,13 @@ public class UserRepository implements Repository<User, UUID> {
         return em.createQuery("select u from User u order by u.login", User.class).getResultList();
     }
 
+    public Optional<User> findByLogin(String login) {
+        return em.createQuery("select u from User u where u.login = :login", User.class)
+                .setParameter("login", login)
+                .getResultStream()
+                .findFirst();
+    }
+
     @Override
     public void create(User entity) {
         em.persist(entity);

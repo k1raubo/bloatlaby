@@ -1,5 +1,6 @@
 package pl.edu.pg.eti.kask.pzw.district.controller;
 
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -24,15 +25,18 @@ import pl.edu.pg.eti.kask.pzw.district.dto.PatchDistrictRequest;
 import pl.edu.pg.eti.kask.pzw.district.dto.PutDistrictRequest;
 import pl.edu.pg.eti.kask.pzw.district.entity.District;
 import pl.edu.pg.eti.kask.pzw.district.service.DistrictService;
+import pl.edu.pg.eti.kask.pzw.user.entity.UserRoles;
 
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
 /**
- * Districts (categories) as a REST resource. Responses never include permits; those are available under
- * {@code /districts/{id}/permits} (see {@link pl.edu.pg.eti.kask.pzw.permit.controller.PermitController}).
+ * Districts (categories) as a REST resource. Every logged-in user may read them, only administrators may change them.
+ * Responses never include permits; those are available under {@code /districts/{id}/permits} (see
+ * {@link pl.edu.pg.eti.kask.pzw.permit.controller.PermitController}).
  */
 @Path("/districts")
+@RolesAllowed({UserRoles.ADMIN, UserRoles.USER})
 @RequestScoped
 @Produces(MediaType.APPLICATION_JSON)
 public class DistrictController {
@@ -67,6 +71,7 @@ public class DistrictController {
      *
      * @return 201 with the address of the new district
      */
+    @RolesAllowed(UserRoles.ADMIN)
     @PUT
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -83,6 +88,7 @@ public class DistrictController {
     /**
      * Updates only the fields present in the request.
      */
+    @RolesAllowed(UserRoles.ADMIN)
     @PATCH
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -101,6 +107,7 @@ public class DistrictController {
     /**
      * Deletes the district together with all its permits.
      */
+    @RolesAllowed(UserRoles.ADMIN)
     @DELETE
     @Path("/{id}")
     public void deleteDistrict(@PathParam("id") UUID id) {
